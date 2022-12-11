@@ -48,9 +48,10 @@ class VideoConverterService:
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             ydl.download([link])
 
-        # сгенерировать some_url
+        # снегерировать url
 
-        # сохранить в бд
+        # сохранить в бд / google drive api
+
         # self.convert.set_local_url(some_url)
 
         # return some_url
