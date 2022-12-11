@@ -2,7 +2,7 @@ from django.views.generic import CreateView
 
 from .models import Convert
 from .forms import ConvertForm
-from .tasks import send_spam_email, download_audio
+from .tasks import convert_and_send
 
 
 class ConvertView(CreateView):
@@ -14,6 +14,7 @@ class ConvertView(CreateView):
     def form_valid(self, form):
         form.save()
         # send(form.instance.email)
-        send_spam_email.delay(form.instance.email)
-        download_audio.delay(form.instance.yt_url)
+        # send_spam_email.delay(form.instance.email)
+        # download_audio.delay(form.instance.yt_url)
+        convert_and_send.delay(form.instance.pk)
         return super().form_valid(form)

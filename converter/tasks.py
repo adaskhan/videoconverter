@@ -1,34 +1,27 @@
-from videoconverteronline.celery import app
-from django.core.mail import send_mail
+import logging
+
 import youtube_dl
+
+from django.core.mail import send_mail
+
+from videoconverteronline.celery import app
 from videoconverteronline.settings import EMAIL_HOST_USER
 
+from .models import Convert
+from .service import VideoConverterService
 
-@app.task
-def send_spam_email(user_email):
-    send_mail(
-        subject='Ссылка на скачивание видео в формате mp3',
-        message='Здесь будет ссылка. Я это потом сделаю',
-        from_email=EMAIL_HOST_USER,
-        recipient_list=[user_email, ]
-    )
+logger = logging.getLogger(__name__)
 
 
 @app.task
-def download_audio(link):
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'wav',
-            'preferredquality': '192'
-        }],
-        'postprocessor_args': [
-            '-ar', '16000'
-        ],
-        'prefer_ffmpeg': True,
-        'keepvideo': True
-    }
+def convert_and_send(convert_id: int):
+    try:
+        convert = Convert.objects.get(pk=convert_id)
+    except Convert.DoesNotExist:
+        logger.error('convert with id %s doesnot exist', convert_id)
+        return
 
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([link])
+    service = VideoConverterService(convert)
+    download_link = service.download()
+    if download_link:
+        service.send()
