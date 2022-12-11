@@ -1,0 +1,4 @@
+django
+redis
+celery
+youtube_dl
